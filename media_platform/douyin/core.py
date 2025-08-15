@@ -134,6 +134,11 @@ class DouYinCrawler(AbstractCrawler):
                     utils.logger.error(f"[DouYinCrawler.search] search douyin keyword: {keyword} failed")
                     break
 
+                # ========== 新增随机延迟 ==========
+                delay_seconds = random.uniform(30, config.CRAWLER_MAX_SLEEP_SEC)
+                utils.logger.debug(f"随机延迟 {delay_seconds:.2f} 秒后继续下一页")
+                await asyncio.sleep(delay_seconds)
+
                 page += 1
                 if "data" not in posts_res:
                     utils.logger.error(f"[DouYinCrawler.search] search douyin keyword: {keyword} failed，账号也许被风控了。")
@@ -345,7 +350,7 @@ class DouYinCrawler(AbstractCrawler):
     async def get_aweme_images(self, aweme_item: Dict):
         """
         get aweme images. please use get_aweme_media
-        
+
         Args:
             aweme_item (Dict): 抖音作品详情
         """
