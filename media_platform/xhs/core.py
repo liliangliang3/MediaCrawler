@@ -120,7 +120,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
         if config.CRAWLER_MAX_NOTES_COUNT < xhs_limit_count:
             config.CRAWLER_MAX_NOTES_COUNT = xhs_limit_count
         start_page = config.START_PAGE
-        RANDOM_PICK_PER_PAGE = random.uniform(10, config.PAGE_CRAWLER_MAX_NOTES_COUNT)
+        # RANDOM_PICK_PER_PAGE = random.uniform(10, config.PAGE_CRAWLER_MAX_NOTES_COUNT)
         for keyword in config.KEYWORDS.split(","):
             source_keyword_var.set(keyword)
             utils.logger.info(f"[XiaoHongShuCrawler.search] Current search keyword: {keyword}")
@@ -149,15 +149,27 @@ class XiaoHongShuCrawler(AbstractCrawler):
                         break
 
                     # 2. 过滤掉推荐和热门查询类笔记
-                    valid_items = [
-                        item for item in notes_res.get("items", [])
-                        if item.get("model_type") not in ("rec_query", "hot_query")
-                    ]
+                    video_items = []
+                    for item in notes_res.get("items", []):
+                        try:
+                            # 条件1：排除推荐和热门类笔记
+                            if item.get("model_type") in ("rec_query", "hot_query"):
+                                continue
+
+                            # 条件2：只选择视频笔记
+                            note_card = item.get("note_card", {})
+                            if note_card.get("type") == "video":
+                                video_items.append(item)
+
+                        except Exception as e:
+                            utils.logger.info(f"[XiaoHongShuCrawler.search] fail: {str(e)}")
+                            continue
+
 
                     # 3. 随机选取指定数量的作品
-                    if len(valid_items) > RANDOM_PICK_PER_PAGE:
-                        valid_items = random.sample(valid_items, RANDOM_PICK_PER_PAGE)
-                        utils.logger.info(f"Randomly picked {RANDOM_PICK_PER_PAGE} notes from page {page}")
+                    # if len(valid_items) > RANDOM_PICK_PER_PAGE:
+                    #     valid_items = random.sample(valid_items, RANDOM_PICK_PER_PAGE)
+                    #     utils.logger.info(f"Randomly picked {RANDOM_PICK_PER_PAGE} notes from page {page}")
 
                     # 4. 并发获取选中作品的详情
                     semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
@@ -167,7 +179,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                             xsec_source=item.get("xsec_source"),
                             xsec_token=item.get("xsec_token"),
                             semaphore=semaphore,
-                        ) for item in valid_items
+                        ) for item in video_items
                     ]
                     note_details = await asyncio.gather(*task_list)
                     for note_detail in note_details:
@@ -196,7 +208,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
             if config.ENABLE_IP_PROXY:
                 crawl_interval = random.random()
             else:
-                crawl_interval = random.uniform(30, config.CRAWLER_MAX_SLEEP_SEC)
+                crawl_interval = random.uniform(1, config.CRAWLER_MAX_SLEEP_SEC)
             # Get all note information of the creator
             all_notes_list = await self.xhs_client.get_all_notes_by_creator(
                 user_id=user_id,
@@ -329,7 +341,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
             if config.ENABLE_IP_PROXY:
                 crawl_interval = random.random()
             else:
-                crawl_interval = random.uniform(30, config.CRAWLER_MAX_SLEEP_SEC)
+                crawl_interval = random.uniform(1, config.CRAWLER_MAX_SLEEP_SEC)
             await self.xhs_client.get_note_all_comments(
                 note_id=note_id,
                 xsec_token=xsec_token,

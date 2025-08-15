@@ -10,7 +10,7 @@
 
 # 基础配置
 PLATFORM = "xhs"  # 平台，xhs | dy | ks | bili | wb | tieba | zhihu
-KEYWORDS = "风景,旅游"  # 关键词搜索配置，以英文逗号分隔
+KEYWORDS = "美食"  # 关键词搜索配置，以英文逗号分隔
 LOGIN_TYPE = "qrcode"  # qrcode or phone or cookie
 COOKIES = ""
 CRAWLER_TYPE = (
@@ -106,7 +106,7 @@ STOP_WORDS_FILE = "./docs/hit_stopwords.txt"
 FONT_PATH = "./docs/STZHONGS.TTF"
 
 # 爬取间隔时间
-CRAWLER_MAX_SLEEP_SEC = 120
+CRAWLER_MAX_SLEEP_SEC = 30
 
 #每页抓取最大条数
 PAGE_CRAWLER_MAX_NOTES_COUNT = 20
